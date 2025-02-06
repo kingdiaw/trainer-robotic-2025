@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <Ticker.h>
+#include "PCF8574.h"
 
 // Encoder pins
 #define LEFT_ENC_PIN_A 18  // GPIO18
@@ -58,6 +59,7 @@ SetPointInfo leftPID;  // Only left motor PID
 
 //Creating Object
 Ticker repeat;
+PCF8574 pcf1(0x20);
 
 // Function prototypes
 void resetPID();
@@ -181,11 +183,12 @@ void updatePID() {
 void setMotorSpeeds(int leftSpeed, int rightSpeed) {
   // Left motor
   if (leftSpeed >= 0) {
-    digitalWrite(LEFT_MOTOR_FORWARD, HIGH);
-    digitalWrite(LEFT_MOTOR_BACKWARD, LOW);
+    //digitalWrite(LEFT_MOTOR_FORWARD, HIGH);
+    pcf1.digitalWrite(P0, HIGH);
+    pcf1.digitalWrite(P1, LOW);
   } else {
-    digitalWrite(LEFT_MOTOR_FORWARD, LOW);
-    digitalWrite(LEFT_MOTOR_BACKWARD, HIGH);
+    pcf1.digitalWrite(P0, LOW);
+    pcf1.digitalWrite(P1, HIGH);
     leftSpeed = -leftSpeed;
   }
   analogWrite(LEFT_MOTOR_ENABLE, constrain(leftSpeed, 0, 255));
@@ -193,11 +196,11 @@ void setMotorSpeeds(int leftSpeed, int rightSpeed) {
   // Right motor (commented out)
   /*
   if (rightSpeed >= 0) {
-    digitalWrite(RIGHT_MOTOR_FORWARD, HIGH);
-    digitalWrite(RIGHT_MOTOR_BACKWARD, LOW);
+    pcf1.digitalWrite(RIGHT_MOTOR_FORWARD, HIGH);
+    pcf1.digitalWrite(RIGHT_MOTOR_BACKWARD, LOW);
   } else {
-    digitalWrite(RIGHT_MOTOR_FORWARD, LOW);
-    digitalWrite(RIGHT_MOTOR_BACKWARD, HIGH);
+    pcf1.digitalWrite(RIGHT_MOTOR_FORWARD, LOW);
+    pcf1.digitalWrite(RIGHT_MOTOR_BACKWARD, HIGH);
     rightSpeed = -rightSpeed;
   }
   analogWrite(RIGHT_MOTOR_ENABLE, constrain(rightSpeed, 0, 255));
@@ -205,7 +208,7 @@ void setMotorSpeeds(int leftSpeed, int rightSpeed) {
 }
 
 // Drive the robot at a given speed in meters per second
-//Spec Motor JGB37-520: 
+//Spec Motor JGB37-520:
 //Max RPM=92 (at 12V)
 //Encoder Max TickPerFrame (30Hz) = 200
 //Encoder Resolution = 3950
@@ -246,11 +249,20 @@ void setup() {
   // Start serial communication for debugging
   Serial.begin(115200);
 
-    // updatePID every 33ms
+  // updatePID every 33ms
   repeat.attach(0.033, updatePID);
+  Serial.println(pcf1.begin() > 0 ? "OK" : "FAIL");
+  pinMode(LEFT_MOTOR_FORWARD, OUTPUT);
+  pinMode(LEFT_MOTOR_BACKWARD, OUTPUT);
+  pcf1.pinMode(P0, OUTPUT);
+  pcf1.pinMode(P1, OUTPUT);
+  pcf1.pinMode(P2, OUTPUT);
+  pcf1.pinMode(P3, OUTPUT);
+
 
   // Example: Drive the left motor forward at 0.33 m/s
   drive(0.12, 0);  // Right motor speed set to 0
+  Serial.println("Prog Start!");
 }
 
 long debugTick;
@@ -276,7 +288,7 @@ void loop() {
     Serial.print(" | ActualTPF: ");
     Serial.print(leftPID.PrevInput);
     Serial.print(" | Revs/min: ");
-    Serial.print((leftPID.PrevInput) / (ENCODER_RESOLUTION * PID_INTERVAL)*60);
+    Serial.print((leftPID.PrevInput) / (ENCODER_RESOLUTION * PID_INTERVAL) * 60);
 
     // Serial.print(" | Right Speed (m/s): "); // (commented out)
     // Serial.println(rightSpeed); // (commented out)

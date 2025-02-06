@@ -1,9 +1,9 @@
 #include <Arduino.h>
 
-#define LEFT_ENC_PIN_A 16  // GPIO16
-#define LEFT_ENC_PIN_B 17  // GPIO17
-#define RIGHT_ENC_PIN_A 18 // GPIO18
-#define RIGHT_ENC_PIN_B 19 // GPIO19
+#define LEFT_ENC_PIN_A 18  // GPIO16
+#define LEFT_ENC_PIN_B 19  // GPIO17
+#define RIGHT_ENC_PIN_A 16 // GPIO18
+#define RIGHT_ENC_PIN_B 17 // GPIO19
 
 // Prototype Functions
 long readEncoder(int i);
